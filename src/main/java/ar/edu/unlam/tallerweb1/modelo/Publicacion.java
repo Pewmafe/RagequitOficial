@@ -2,16 +2,17 @@ package ar.edu.unlam.tallerweb1.modelo;
 
 
 import java.util.Date;
-import java.util.List;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 
 @Entity
-public class Publicacion {
+public class Publicacion implements Comparable<Publicacion>{
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,21 +24,15 @@ public class Publicacion {
 	private String urlImagen;
 	private String urlVideo;
 	private PublicacionTipo tipo;
+	private PublicacionEstado estado;
+	@Transient
+	private Long categoriaId;
+//	private String categoria;
+	@ManyToOne
+	private Categoria categoria;
 	
-	private String categoria;
-//	@ManyToOne
-//	private Categoria categoria;
-	
-	@OneToMany
-	private List <Comentario> comentarios;
-	
-	public String getCategoria() {
-		return categoria;
-	}
-
-	public void setCategoria(String categoria) {
-		this.categoria = categoria;
-	}
+	@OneToOne
+	private Usuario usuario;
 
 	public PublicacionTipo getTipo() {
 		return tipo;
@@ -96,19 +91,41 @@ public class Publicacion {
 	}	
 
 
-//	public Categoria getCategoria() {
-//		return categoria;
-//	}
-//
-//	public void setCategoria(Categoria categoria) {
-//		this.categoria = categoria;
-//	}
-
-	public List<Comentario> getComentarios() {
-		return comentarios;
+	public Categoria getCategoria() {
+		return categoria;
 	}
 
-	public void setComentarios(List<Comentario> comentarios) {
-		this.comentarios = comentarios;
+	public void setCategoria(Categoria categoria) {
+		this.categoria = categoria;
 	}
+
+	public Long getCategoriaId() {
+		return categoriaId;
+	}
+
+	public void setCategoriaId(Long categoriaId) {
+		this.categoriaId = categoriaId;
+	}
+
+	public Usuario getUsuario() {
+		return usuario;
+	}
+
+	public void setUsuario(Usuario usuario) {
+		this.usuario = usuario;
+	}
+
+	public PublicacionEstado getEstado() {
+		return estado;
+	}
+
+	public void setEstado(PublicacionEstado estado) {
+		this.estado = estado;
+	}
+
+	@Override
+	public int compareTo(Publicacion publicacion) {
+		return this.id.compareTo(publicacion.getId()); 
+	}
+	
 }

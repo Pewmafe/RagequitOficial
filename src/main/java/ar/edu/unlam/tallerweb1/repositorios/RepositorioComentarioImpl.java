@@ -10,57 +10,49 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 
 import ar.edu.unlam.tallerweb1.modelo.Comentario;
+import ar.edu.unlam.tallerweb1.modelo.Publicacion;
 
 @Repository
 public class RepositorioComentarioImpl implements RepositorioComentario {
-	
+
 	@Inject
 	private SessionFactory sessionFactory;
-	
 
 	@Override
 	public Long enviarComentario(Comentario comentario) {
 		Session session = sessionFactory.getCurrentSession();
-		return (Long)session.save(comentario);	
+		return (Long) session.save(comentario);
 	}
-
 
 	@Override
 	public Comentario mostrarComentario(Long id) {
-		return sessionFactory.getCurrentSession().get(Comentario.class,id);
+		return sessionFactory.getCurrentSession().get(Comentario.class, id);
 	}
 
-
-	@Override /* COMO HACER ESTO FUNCIONAL A LA PAGINA */
+	@Override 
 	public void borrarComentario(Long id) {
 		Comentario comentario = mostrarComentario(id);
-		Session session = sessionFactory.getCurrentSession();
-		session.delete(comentario);
+				Session session = sessionFactory.getCurrentSession();
+				session.delete(comentario);
 	}
 
-	
 
 	@Override
-	public List<Comentario> verListaComentarios() {
-		return sessionFactory.getCurrentSession().createCriteria(Comentario.class).list();
+	public List<Comentario> obtenerComentariosPorPublicacion(Publicacion publicacion) {
+		return sessionFactory.getCurrentSession().createCriteria(Comentario.class)
+				.add(Restrictions.eq("publicacion", publicacion)).list();
 	}
-
-	
-	@Override
-	public List<Comentario> mostrarComentarioPorPublicacion(Long idPublicacion) {
-		return sessionFactory.getCurrentSession().createCriteria(Comentario.class).add(Restrictions.eq("publicacion_id",idPublicacion))
-		.list();
-	}
-
 
 	@Override
 	public List<Comentario> mostrarTodosLosComentarios() {
-		return sessionFactory.getCurrentSession()
-				.createCriteria(Comentario.class)
-				.list();
+		return sessionFactory.getCurrentSession().createCriteria(Comentario.class).list();
 	}
 
-	
+	@Override
+	public List<Comentario> respuestaListado(Comentario comentario) {
+		return sessionFactory.getCurrentSession().createCriteria(Comentario.class)
+				.add(Restrictions.eq("respuesta", comentario)).list();
+	}
 	
 
 }

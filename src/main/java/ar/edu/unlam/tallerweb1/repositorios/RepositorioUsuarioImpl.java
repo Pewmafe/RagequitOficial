@@ -1,11 +1,14 @@
 package ar.edu.unlam.tallerweb1.repositorios;
 
+import ar.edu.unlam.tallerweb1.modelo.Publicacion;
 import ar.edu.unlam.tallerweb1.modelo.Usuario;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -15,31 +18,43 @@ import javax.inject.Inject;
 @Repository("repositorioUsuario")
 public class RepositorioUsuarioImpl implements RepositorioUsuario {
 
-	// Como todo repositorio maneja acciones de persistencia, normalmente estará inyectado el session factory de hibernate
+	// Como todo repositorio maneja acciones de persistencia, normalmente estará
+	// inyectado el session factory de hibernate
 	// el mismo está difinido en el archivo hibernateContext.xml
 	private SessionFactory sessionFactory;
 
-    @Autowired
-	public RepositorioUsuarioImpl(SessionFactory sessionFactory){
+	@Autowired
+	public RepositorioUsuarioImpl(SessionFactory sessionFactory) {
 		this.sessionFactory = sessionFactory;
 	}
 
 	@Override
 	public Usuario consultarUsuario(Usuario usuario) {
 
-		// Se obtiene la sesion asociada a la transaccion iniciada en el servicio que invoca a este metodo y se crea un criterio
-		// de busqueda de Usuario donde el email y password sean iguales a los del objeto recibido como parametro
+		// Se obtiene la sesion asociada a la transaccion iniciada en el servicio que
+		// invoca a este metodo y se crea un criterio
+		// de busqueda de Usuario donde el email y password sean iguales a los del
+		// objeto recibido como parametro
 		// uniqueResult da error si se encuentran más de un resultado en la busqueda.
 		final Session session = sessionFactory.getCurrentSession();
-		return (Usuario) session.createCriteria(Usuario.class)
-				.add(Restrictions.eq("email", usuario.getEmail()))
-				.add(Restrictions.eq("password", usuario.getPassword()))
-				.uniqueResult();
+		return (Usuario) session.createCriteria(Usuario.class).add(Restrictions.eq("email", usuario.getEmail()))
+				.add(Restrictions.eq("password", usuario.getPassword())).uniqueResult();
 	}
 
 	@Override
 	public void registrarUsuario(Usuario usuario) {
+
 		sessionFactory.getCurrentSession().save(usuario);
+	}
+
+	@Override
+	public List<Usuario> listarUsuarios() {
+		return sessionFactory.getCurrentSession().createCriteria(Usuario.class).list();
+	}
+
+	@Override
+	public Usuario obtenerUsuarioPorId(Long id) {
+		return sessionFactory.getCurrentSession().get(Usuario.class, id);
 	}
 
 }

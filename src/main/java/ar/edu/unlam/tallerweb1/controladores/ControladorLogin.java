@@ -8,16 +8,22 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-
-import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 
 @Controller
 public class ControladorLogin {
 
+	// La anotacion @Autowired indica a Spring que se debe utilizar el contructor
+	// como mecanismo de inyección de dependencias,
+	// es decir, qeue lo parametros del mismo deben ser un bean de spring y el
+	// framewrok automaticamente pasa como parametro
+	// el bean correspondiente, en este caso, un objeto de una clase que implemente
+	// la interface ServicioLogin,
+	// dicha clase debe estar anotada como @Service o @Repository y debe estar en un
+	// paquete de los indicados en
+	// applicationContext.xml
 	// La anotacion @Autowired indica a Spring que se debe utilizar el contructor
 	// como mecanismo de inyección de dependencias,
 	// es decir, qeue lo parametros del mismo deben ser un bean de spring y el
@@ -48,6 +54,7 @@ public class ControladorLogin {
 		// Se va a la vista login (el nombre completo de la lista se resuelve utilizando
 		// el view resolver definido en el archivo spring-servlet.xml)
 		// y se envian los datos a la misma dentro del modelo
+		modelo.put("title", "RageQuit | Iniciar Sesion");
 		return new ModelAndView("login", modelo);
 	}
 
@@ -66,6 +73,15 @@ public class ControladorLogin {
 		Usuario usuarioBuscado = servicioLogin.consultarUsuario(usuario);
 		if (usuarioBuscado != null) {
 			request.getSession().setAttribute("ROL", usuarioBuscado.getRol());
+			request.getSession().setAttribute("ID", usuarioBuscado.getId());
+			request.getSession().setAttribute("NOMBREUSUARIO", usuarioBuscado.getNombreUsuario());
+			request.getSession().setAttribute("USUARIO", usuarioBuscado);
+			request.getSession().setAttribute("URLIMAGEN", usuarioBuscado.getUrl_imagen());
+			request.getSession().setAttribute("NOMBRE", usuarioBuscado.getNombre());
+			request.getSession().setAttribute("APELLIDO", usuarioBuscado.getApellido());
+			request.getSession().setAttribute("EMAIL", usuarioBuscado.getEmail());
+
+
 			return new ModelAndView("redirect:/home");
 		} else {
 			// si el usuario no existe agrega un mensaje de error en el modelo.
@@ -91,26 +107,26 @@ public class ControladorLogin {
 	@RequestMapping(path = "registrar")
 	public ModelAndView registrar() {
 		ModelMap modelo = new ModelMap();
-		modelo.put("title","Login");
-		return new ModelAndView("crearUsuario",modelo);
+		Usuario usuario1 = new Usuario();
+		modelo.put("usuario", usuario1);
+		modelo.put("title", "RageQuit | Registrar Usuario");
+		return new ModelAndView("crearUsuario", modelo);
 	}
 
-	@RequestMapping(path = "/registrando")
-	public ModelAndView registrarUsuario(@RequestParam(value = "nombre", required = false) String nombre,
-			@RequestParam(value = "apellido", required = false) String apellido,
-			@RequestParam(value = "email", required = false) String email,
-			@RequestParam(value = "telefono", required = false) String telefono,
-			@RequestParam(value = "usuario", required = false) String usuario,
-			@RequestParam(value = "contrasenia", required = false) String contrasenia){
+	@RequestMapping(path = "cerrarSesion")
+	public ModelAndView cerrarSesion(HttpServletRequest request) {
 		ModelMap modelo = new ModelMap();
-		Usuario usuariov1= new Usuario();
-		usuariov1.setApellido(apellido);
-		usuariov1.setEmail(email);
-		usuariov1.setNombre(nombre);
-		usuariov1.setNombreUsuario(usuario);
-		usuariov1.setPassword(contrasenia);
-		usuariov1.setRol("Admin");
-		servicioLogin.registrarUsuario(usuariov1);
-		return new ModelAndView("redirect:/login",modelo);
+		request.getSession().invalidate();
+		return new ModelAndView("redirect:/home", modelo);
+	}
+
+	@RequestMapping(path = "/registrando", method = RequestMethod.POST)
+	public ModelAndView registrarUsuario(@ModelAttribute("usuario") Usuario usuario1) {
+		ModelMap modelo = new ModelMap();
+
+		usuario1.setRol("usuario");
+
+		servicioLogin.registrarUsuario(usuario1);
+		return new ModelAndView("redirect:/login", modelo);
 	}
 }
