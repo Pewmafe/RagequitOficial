@@ -17,7 +17,7 @@ public class AdministrarRolTest {
 	@Before
 	public void init() {
 		repositorioUsuarioMock = mock(RepositorioUsuario.class);
- 	
+
 		servicioUsuario.setRepositorioUsuario(repositorioUsuarioMock);
 		//when(mockRepository.findById(1L)).thenReturn(Optional.of(book));
 	}
@@ -35,7 +35,9 @@ public class AdministrarRolTest {
 		
 		assertThat(usuarioRol).isEqualTo("usuario");
 		
-		when(repositorioUsuarioMock.obtenerUsuarioPorId(1L)).thenReturn(usuario);		
+//		servicioUsuario.setRepositorioUsuario(repositorioUsuarioMock);
+//		when(repositorioUsuarioMock.obtenerUsuarioPorId(1L)).thenReturn(usuario);
+		//persistir usuario
 		
 		servicioUsuario.cambiarRol(idUsuario, "admin");
 		

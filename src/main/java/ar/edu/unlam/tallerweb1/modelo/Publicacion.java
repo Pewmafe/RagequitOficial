@@ -20,13 +20,14 @@ public class Publicacion implements Comparable<Publicacion>{
 	
 	private String mensaje;
 	private Integer cantidadLikes;
+	private Integer cantidadComentarios;
 	private Date fechaHora;
 	private String urlImagen;
 	private String urlVideo;
 	private PublicacionTipo tipo;
+	private PublicacionEstado estado;
 	@Transient
 	private Long categoriaId;
-//	private String categoria;
 	@ManyToOne
 	private Categoria categoria;
 	
@@ -112,6 +113,22 @@ public class Publicacion implements Comparable<Publicacion>{
 
 	public void setUsuario(Usuario usuario) {
 		this.usuario = usuario;
+	}
+
+	public PublicacionEstado getEstado() {
+		return estado;
+	}
+
+	public void setEstado(PublicacionEstado estado) {
+		this.estado = estado;
+	}
+
+	public Integer getCantidadComentarios() {
+		return cantidadComentarios;
+	}
+
+	public void setCantidadComentarios(Integer cantidadComentarios) {
+		this.cantidadComentarios = cantidadComentarios;
 	}
 
 	@Override

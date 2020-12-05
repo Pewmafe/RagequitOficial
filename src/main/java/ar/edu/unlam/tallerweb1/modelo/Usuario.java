@@ -2,10 +2,12 @@ package ar.edu.unlam.tallerweb1.modelo;
 
 import java.util.Date;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
 // Clase que modela el concepto de Usuario, la anotacion @Entity le avisa a hibernate que esta clase es persistible
 // el paquete ar.edu.unlam.tallerweb1.modelo esta indicado en el archivo hibernateCOntext.xml para que hibernate
@@ -34,15 +36,11 @@ public class Usuario {
 	private Integer contadorSeguidos;
 	private Integer contadorSuscriptores;
 	private Integer contadorSeguidores;
+	private Integer contadorCategoriasSeguidas;
 	private String url_imagen;
-
-	// Array de seguidores
-	// @ManyToMany
-	// private List<Usuario> arraySeguidores = new LinkedList<Usuario>();
-
-	// Array de Suscriptores
-	// @ManyToMany
-	// private List<Usuario> arraySuscriptores = new LinkedList<Usuario>();
+	private Integer telefono;
+	private Integer contadorNotificaciones;
+	
 
 	public String getNombreUsuario() {
 		return nombreUsuario;
@@ -155,4 +153,29 @@ public class Usuario {
 	public void setUrl_imagen(String url_imagen) {
 		this.url_imagen = url_imagen;
 	}
+
+	public Integer getContadorCategoriasSeguidas() {
+		return contadorCategoriasSeguidas;
+	}
+
+	public void setContadorCategoriasSeguidas(Integer contadorCategoriasSeguidas) {
+		this.contadorCategoriasSeguidas = contadorCategoriasSeguidas;
+	}
+
+	public Integer getTelefono() {
+		return telefono;
+	}
+
+	public void setTelefono(Integer telefono) {
+		this.telefono = telefono;
+	}
+
+	public Integer getContadorNotificaciones() {
+		return contadorNotificaciones;
+	}
+
+	public void setContadorNotificaciones(Integer contadorNotificaciones) {
+		this.contadorNotificaciones = contadorNotificaciones;
+	}
+	
 }

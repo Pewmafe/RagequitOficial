@@ -4,6 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Transient;
 
 @Entity
 public class Categoria {
@@ -14,8 +15,12 @@ public class Categoria {
 	private String nombre;
 	private String urlImagen;
 	private String urlIcono;
+	private String descripcion;
+	private Integer contadorSeguidores;
 	
 	private CategoriaTipo tipoCategoria;
+	@Transient
+	private Integer tipoCategoriaNum;
 	
 	public Long getId() {
 		return id;
@@ -49,5 +54,26 @@ public class Categoria {
 	public void setUrlIcono(String urlIcono) {
 		this.urlIcono = urlIcono;
 	}
+	
+	public String getDescripcion() {
+		return descripcion;
+	}
+	public void setDescripcion(String descripcion) {
+		this.descripcion = descripcion;
+	}
+
+	public Integer getTipoCategoriaNum() {
+		return tipoCategoriaNum;
+	}
+	public void setTipoCategoriaNum(Integer tipoCategoriaNum) {
+		this.tipoCategoriaNum = tipoCategoriaNum;
+	}
+	public Integer getContadorSeguidores() {
+		return contadorSeguidores;
+	}
+	public void setContadorSeguidores(Integer contadorSeguidores) {
+		this.contadorSeguidores = contadorSeguidores;
+	}
+	
 	
 }

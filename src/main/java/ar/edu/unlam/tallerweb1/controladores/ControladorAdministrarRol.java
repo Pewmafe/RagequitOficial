@@ -23,7 +23,9 @@ public class ControladorAdministrarRol {
 	private ServicioUsuario servicioUsuario;
 
 	@RequestMapping(path = "administrar")
-	public ModelAndView irAAdministracionRol(HttpServletRequest request) {
+	public ModelAndView irAAdministracionRol(
+			@RequestParam(value = "errorCambiarRol", required = false) String errorCambiarRol,
+			HttpServletRequest request) {
 		ModelMap modelo = new ModelMap();
 		List<Usuario> usuarios = servicioUsuario.listarUsuarios();
 
@@ -34,20 +36,28 @@ public class ControladorAdministrarRol {
 						
 		modelo.put("usuarioLogeado", usuarioLogeado);
 		modelo.put("listaUsuarios", usuarios);
+		modelo.put("errorCambiarRol",errorCambiarRol);
 
 
 		return new ModelAndView("administrarRol", modelo);
 	}
 
-	@RequestMapping(path = "/cambiarRol", method = RequestMethod.GET)
+	@RequestMapping(path = "/cambiarRol", method = RequestMethod.POST)
 	public ModelAndView cambiarRolUsuario(@RequestParam(value = "rolUsuario", required = false) String rol,
 			@RequestParam(value = "botonCambiarRol", required = false) Long id, HttpServletRequest request) {
-
+		Usuario usuarioQuePidioCambiarUnRol = (Usuario) request.getSession().getAttribute("USUARIO") ;
+		String rolDelUsuarioQuePidioCambiarUnRol = usuarioQuePidioCambiarUnRol.getRol();
+		Long idDelUsuarioQuePidioCambiarUnRol = usuarioQuePidioCambiarUnRol.getId();
+		if(!rolDelUsuarioQuePidioCambiarUnRol.equals("admin")) {
+			return new ModelAndView("redirect:/administrar?errorCambiarRol=true");
+		}
+		
 		servicioUsuario.cambiarRol(id, rol);
-
-		if (id.equals(request.getSession().getAttribute("ID"))) {
-
-			request.getSession().setAttribute("ROL", rol);
+		
+		if (id.equals(idDelUsuarioQuePidioCambiarUnRol)) {
+			
+			Usuario usuario = servicioUsuario.obtenerUsuarioPorId(id);
+			request.getSession().setAttribute("USUARIO", usuario);
 		}
 
 		return new ModelAndView("redirect:/administrar");
