@@ -16,110 +16,68 @@ import org.springframework.web.servlet.ModelAndView;
 
 import ar.edu.unlam.tallerweb1.modelo.Comentario;
 import ar.edu.unlam.tallerweb1.modelo.ComentarioEstado;
+import ar.edu.unlam.tallerweb1.modelo.Notificacion;
+import ar.edu.unlam.tallerweb1.modelo.NotificacionTipo;
 import ar.edu.unlam.tallerweb1.modelo.Publicacion;
 import ar.edu.unlam.tallerweb1.modelo.Usuario;
-import ar.edu.unlam.tallerweb1.servicios.ServicioComentar;
+import ar.edu.unlam.tallerweb1.servicios.ServicioComentario;
+import ar.edu.unlam.tallerweb1.servicios.ServicioLikeComentario;
+import ar.edu.unlam.tallerweb1.servicios.ServicioNotificacion;
 import ar.edu.unlam.tallerweb1.servicios.ServicioPublicacion;
+import ar.edu.unlam.tallerweb1.servicios.ServicioUsuario;
 
 @Controller
 public class ControladorComentario {
 
 	@Inject
-	private ServicioComentar servicioComentario;
-	
+	private ServicioComentario servicioComentario;
+
 	@Inject
 	private ServicioPublicacion servicioPublicacion;
 
-	/* ---------- Pagina para comentar ----------- */
-	
-	/* @RequestMapping(path = "/comentario")
-	public ModelAndView comentar(HttpServletRequest request) {
-		String rol = request.getSession().getAttribute("ROL") != null
-				? (String) request.getSession().getAttribute("ROL")
-				: "";
-		String nombreUsuario = request.getSession().getAttribute("NOMBREUSUARIO") != null
-				? (String) request.getSession().getAttribute("NOMBREUSUARIO")
-				: "";
-		String url_imagen = request.getSession().getAttribute("URLIMAGEN") != null
-				? (String) request.getSession().getAttribute("URLIMAGEN")
-				: "";
-								
-	if (request.getSession().getAttribute("ROL") != null) {		
-			ModelMap modelo = new ModelMap();
-			modelo.put("title", "RageQuit | Comentarios");
-			modelo.put("usuarioRol", rol);
-			modelo.put("url_imagen", url_imagen);
-			modelo.put("nombreUsuario", nombreUsuario);
+	@Inject
+	private ServicioLikeComentario servicioLikesComentario;
 
-			return new ModelAndView("comentarioEscribir", modelo);
-		}
-		return new ModelAndView("redirect:/login");
-	} */
+	@Inject
+	private ServicioNotificacion servicioNotificacion;
 
-	/* ---------- Pagina para imprimir comentarios ----------- */
-	
-	/* @RequestMapping(path = "/comentarioVisualizacion")
-	public ModelAndView verComentario(HttpServletRequest request,
-			@RequestParam(value = "nombreUsuario", required = false) String usuarioNombre
-
-	) {
-		String rol = request.getSession().getAttribute("ROL") != null
-				? (String) request.getSession().getAttribute("ROL")
-				: "";
-		String nombreUsuario = request.getSession().getAttribute("NOMBREUSUARIO") != null
-				? (String) request.getSession().getAttribute("NOMBREUSUARIO")
-				: "";
-		String url_imagen = request.getSession().getAttribute("URLIMAGEN") != null
-				? (String) request.getSession().getAttribute("URLIMAGEN")
-				: "";
-
-		Long usuarioId = request.getSession().getAttribute("ID") != null
-				? (Long) request.getSession().getAttribute("ID")
-				: null;
-
-		Comentario comentario = new Comentario();
-		ModelMap modelo = new ModelMap();
-		modelo.put("usuarioRol", rol);
-		modelo.put("nombreUsuario", nombreUsuario);
-		modelo.put("url_imagen", url_imagen);
-		modelo.put("usuarioId", usuarioId);
-
-		List<Comentario> comentarios = servicioComentario.mostrarTodosLosComentarios();
-		if (comentarios.isEmpty()) {
-			String error = "Comentario vacio";
-			return new ModelAndView("redirect:/comentario?errorComentario=" + error);
-		}
-		modelo.put("comentarios", comentarios);
-		modelo.put("comentario", comentario);
-		modelo.put("title", "RageQuit | Comentarios Hechos");
-
-		return new ModelAndView("comentarioVer", modelo);
-	} */
-
+	@Inject
+	private ServicioUsuario servicioUsuario;
 	/* ---------- Pagina para guardar comentarios ----------- */
-	
+
 	@RequestMapping(path = "/guardarComentario", method = RequestMethod.POST)
-	public ModelAndView enviarComentario(
-			@ModelAttribute("comentario") Comentario comentario, HttpServletRequest request) {
-		
+	public ModelAndView enviarComentario(@ModelAttribute("comentario") Comentario comentario,
+			HttpServletRequest request) {
+
 		Usuario usuario = request.getSession().getAttribute("USUARIO") != null
 				? (Usuario) request.getSession().getAttribute("USUARIO")
 				: null;
-				
+
 		java.util.Date fecha = new Date();
 		comentario.setUsuario(usuario);
 		comentario.setCantidadLikes(0);
+		comentario.setCantidadRespuesta(0);
 		comentario.setFechaHora(fecha);
 		comentario.setEstado(ComentarioEstado.ACTIVO);
-		servicioComentario.tipoComentario("comun", comentario);
-		Publicacion publicacion = servicioPublicacion.obtenerPublicacion(comentario.getPublicacionId());
-		
+		Publicacion publicacion = servicioPublicacion.obtenerPublicacionPorId(comentario.getPublicacionId());
 		comentario.setPublicacion(publicacion);
 
-		if (comentario.getMensaje().isEmpty() || comentario.getMensaje().substring(0, 1).equals(" ")) { 
+		if (comentario.getMensaje().isEmpty() || comentario.getMensaje().substring(0, 1).equals(" ")) {
 			return new ModelAndView("redirect:/home?errorComentarioVacio=true");
 		}
-		servicioComentario.enviarComentario(comentario);
+
+		servicioUsuario.aumentarCantidadNotificacionesDeUsuario(publicacion.getUsuario());
+		servicioComentario.guardarComentario(comentario);
+
+		Notificacion notificacion = new Notificacion();
+		notificacion.setComentarioDePublicacion(publicacion);
+		notificacion.setUsuarioOtorgadorNotifi(usuario);
+		notificacion.setUsuarioRecibidorNotifi(publicacion.getUsuario());
+		notificacion.setTipo(NotificacionTipo.COMENTARIOPUBLICACION);
+		notificacion.setComentario(comentario);
+		notificacion.setVisto(false);
+		servicioNotificacion.guardarNotificacion(notificacion);
+
 		return new ModelAndView("redirect:/home");
 
 	}
@@ -128,37 +86,51 @@ public class ControladorComentario {
 
 	@RequestMapping(path = "/borrarComentario")
 	public ModelAndView eliminarComentario(@RequestParam(value = "botonBorrar", required = true) Long idComentario,
-										  HttpServletRequest request) {
-		
+			HttpServletRequest request) {
+
 		Usuario usuarioLogueado = request.getSession().getAttribute("USUARIO") != null
 				? (Usuario) request.getSession().getAttribute("USUARIO")
 				: null;
-				
+
 		Comentario usuarioIngresado = servicioComentario.mostrarComentario(idComentario);
-		Boolean resultado = servicioComentario.veridifcarUsuario(usuarioLogueado,usuarioIngresado.getUsuario());
-		if(resultado = true) {
+		Boolean resultado = servicioComentario.verificarUsuario(usuarioLogueado, usuarioIngresado.getUsuario());
+		if (resultado = true) {
 			servicioComentario.borrarComentario(idComentario);
 			return new ModelAndView("redirect:/home");
-		} 
-			String error = "Error inesperado";
-			return new ModelAndView("redirect:/home?errorComentario=" + error);
+		}
+		String error = "Error inesperado";
+		return new ModelAndView("redirect:/home?errorComentario=" + error);
 	}
 
-	/* ---------- Pagina para  likear ----------- */
-	
+	/* ---------- Pagina para likear ----------- */
+
 	@RequestMapping(path = "/meGustaComentario", method = RequestMethod.GET)
-	public ModelAndView darLikeComentario(@RequestParam(value = "botonLike", required = true) Long idLike,
-			 HttpServletRequest request) {
-		
-		servicioComentario.darLikeComentario(idLike);
+	public ModelAndView darLikeComentario(@RequestParam(value = "botonLike", required = true) Long id,
+			HttpServletRequest request) {
+
+		Comentario comentario = servicioComentario.mostrarComentario(id);
+		Usuario usuario = request.getSession().getAttribute("USUARIO") != null
+				? (Usuario) request.getSession().getAttribute("USUARIO")
+				: null;
+
+		Notificacion notificacion = new Notificacion();
+		notificacion.setComentarioLike(comentario);
+		notificacion.setUsuarioOtorgadorNotifi(usuario);
+		notificacion.setUsuarioRecibidorNotifi(comentario.getUsuario());
+		notificacion.setTipo(NotificacionTipo.LIKECOMENTARIO);
+		notificacion.setVisto(false);
+		servicioNotificacion.guardarNotificacion(notificacion);
+		servicioLikesComentario.darLikeAComentario(comentario, usuario);
+		servicioUsuario.aumentarCantidadNotificacionesDeUsuario(comentario.getUsuario());
+
 		return new ModelAndView("redirect:/home");
 	}
 
 	/* ---------- Pagina para responder comentarios ----------- */
 
 	@RequestMapping(path = "/responderComentario", method = RequestMethod.POST)
-	public ModelAndView guardarRespuesta(
-			@ModelAttribute("comentario") Comentario respuesta, HttpServletRequest request) {
+	public ModelAndView guardarRespuesta(@ModelAttribute("comentario") Comentario respuesta,
+			HttpServletRequest request) {
 
 		Usuario usuario = request.getSession().getAttribute("USUARIO") != null
 				? (Usuario) request.getSession().getAttribute("USUARIO")
@@ -169,7 +141,6 @@ public class ControladorComentario {
 		respuesta.setFechaHora(fecha);
 		respuesta.setEstado(ComentarioEstado.ACTIVO);
 		respuesta.setUsuario(usuario);
-		servicioComentario.tipoComentario("comun", respuesta);
 
 		Comentario comentario = servicioComentario.mostrarComentario(respuesta.getComentarioAResponderId());
 		respuesta.setRespuesta(comentario);
@@ -178,22 +149,30 @@ public class ControladorComentario {
 			return new ModelAndView("redirect:/home?errorComentarioVacio=true");
 		}
 
-		servicioComentario.enviarComentario(respuesta);
+		servicioComentario.guardarComentario(respuesta);
+		servicioUsuario.aumentarCantidadNotificacionesDeUsuario(comentario.getUsuario());
+		Notificacion notificacion = new Notificacion();
+		notificacion.setRespuestaDeComentario(comentario);
+		notificacion.setUsuarioOtorgadorNotifi(usuario);
+		notificacion.setUsuarioRecibidorNotifi(comentario.getUsuario());
+		notificacion.setTipo(NotificacionTipo.COMENTARIOCOMENTARIO);
+		notificacion.setVisto(false);
+		notificacion.setComentario(respuesta);
+		servicioNotificacion.guardarNotificacion(notificacion);
+
 		return new ModelAndView("redirect:/home");
 	}
-	
-	
+
 	/* GETTERS AND SETTERS */
-	
-	
-	public ServicioComentar getServicioComentario() {
+
+	public ServicioComentario getServicioComentario() {
 		return servicioComentario;
 	}
 
-	public void setServicioComentario(ServicioComentar servicioComentario) {
+	public void setServicioComentario(ServicioComentario servicioComentario) {
 		this.servicioComentario = servicioComentario;
 	}
-	
+
 	public ServicioPublicacion getServicioPublicacion() {
 		return servicioPublicacion;
 	}
@@ -201,6 +180,5 @@ public class ControladorComentario {
 	public void setServicioPublicacion(ServicioPublicacion servicioPublicacion) {
 		this.servicioPublicacion = servicioPublicacion;
 	}
-	
 
 }

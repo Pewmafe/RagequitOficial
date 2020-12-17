@@ -1,6 +1,5 @@
 package ar.edu.unlam.tallerweb1.modelo;
 
-
 import java.util.Date;
 
 import javax.persistence.Entity;
@@ -12,14 +11,15 @@ import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 
 @Entity
-public class Publicacion implements Comparable<Publicacion>{
-	
+public class Publicacion implements Comparable<Publicacion> {
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	
+
 	private String mensaje;
 	private Integer cantidadLikes;
+	private Integer cantidadComentarios;
 	private Date fechaHora;
 	private String urlImagen;
 	private String urlVideo;
@@ -27,10 +27,9 @@ public class Publicacion implements Comparable<Publicacion>{
 	private PublicacionEstado estado;
 	@Transient
 	private Long categoriaId;
-//	private String categoria;
 	@ManyToOne
 	private Categoria categoria;
-	
+
 	@OneToOne
 	private Usuario usuario;
 
@@ -88,8 +87,7 @@ public class Publicacion implements Comparable<Publicacion>{
 
 	public void setUrlVideo(String urlVideo) {
 		this.urlVideo = urlVideo;
-	}	
-
+	}
 
 	public Categoria getCategoria() {
 		return categoria;
@@ -123,9 +121,17 @@ public class Publicacion implements Comparable<Publicacion>{
 		this.estado = estado;
 	}
 
+	public Integer getCantidadComentarios() {
+		return cantidadComentarios;
+	}
+
+	public void setCantidadComentarios(Integer cantidadComentarios) {
+		this.cantidadComentarios = cantidadComentarios;
+	}
+
 	@Override
 	public int compareTo(Publicacion publicacion) {
-		return this.id.compareTo(publicacion.getId()); 
+		return this.id.compareTo(publicacion.getId());
 	}
-	
+
 }

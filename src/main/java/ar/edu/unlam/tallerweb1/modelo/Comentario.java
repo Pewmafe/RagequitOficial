@@ -1,6 +1,5 @@
 package ar.edu.unlam.tallerweb1.modelo;
 
-
 import java.util.Date;
 import java.util.List;
 
@@ -14,41 +13,41 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Transient;
 
 @Entity
-public class Comentario { 
-	
+public class Comentario implements Comparable<Comentario> {
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	
+
 	@ManyToOne
 	private Publicacion publicacion;
 	@Transient
 	private Long publicacionId;
-	
+
 	@ManyToOne
 	private Comentario respuesta;
 	@Transient
 	private Long comentarioAResponderId;
-	
+
 	@ManyToOne
-	private Usuario usuario;	
-	
+	private Usuario usuario;
+
 	@ManyToMany
-	private  List<Usuario> litadoLikes; 
+	private List<Usuario> litadoLikes;
 
 	private String mensaje;
-	
-	@Column(name="fecha")
+
+	@Column(name = "fecha")
 	private Date fechaHora;
-	
+
 	private Integer cantidadLikes;
-	
+
 	private ComentarioEstado estado;
 
-	private ComentarioTipo tipo;
-	
+	private Integer cantidadRespuesta;
+
 	/* ---------- GETERS AND SETERS ---------- */
-	
+
 	public Comentario getRespuesta() {
 		return respuesta;
 	}
@@ -56,7 +55,6 @@ public class Comentario {
 	public void setRespuesta(Comentario respuesta) {
 		this.respuesta = respuesta;
 	}
-
 
 	public Long getId() {
 		return id;
@@ -90,14 +88,6 @@ public class Comentario {
 		this.cantidadLikes = cantidadLikes;
 	}
 
-	public ComentarioTipo getTipo() {
-		return tipo;
-	}
-
-	public void setTipo(ComentarioTipo tipo) {
-		this.tipo = tipo;
-	}
-	
 	public Publicacion getPublicacion() {
 		return publicacion;
 	}
@@ -113,7 +103,7 @@ public class Comentario {
 	public void setEstado(ComentarioEstado estado) {
 		this.estado = estado;
 	}
-	
+
 	public Usuario getUsuario() {
 		return usuario;
 	}
@@ -146,5 +136,17 @@ public class Comentario {
 		this.comentarioAResponderId = comentarioAResponderId;
 	}
 
+	@Override
+	public int compareTo(Comentario comentario) {
+		return this.id.compareTo(comentario.getId());
+	}
+
+	public Integer getCantidadRespuesta() {
+		return cantidadRespuesta;
+	}
+
+	public void setCantidadRespuesta(Integer cantidadRespuesta) {
+		this.cantidadRespuesta = cantidadRespuesta;
+	}
 
 }
